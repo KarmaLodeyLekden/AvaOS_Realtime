@@ -1,0 +1,26 @@
+name: Auto Deploy to RunPod
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+
+      - name: Connect to RunPod and deploy
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.RUNPOD_HOST }}
+          username: ${{ secrets.RUNPOD_USER }}
+          key: ${{ secrets.RUNPOD_SSH_KEY }}
+          script: |
+            cd /workspace/AvaOS_Realtime || git clone https://github.com/KarmaLodeyLekden/AvaOS_Realtime.git
+            cd /workspace/AvaOS_Realtime
+            git pull origin main
+            pip install -r requirements.txt || true
+            python main.py
