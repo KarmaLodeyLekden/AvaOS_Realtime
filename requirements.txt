@@ -1,7 +1,10 @@
 soundfile
-TTS
+aiohttp
 flask
-requests
+TTS
+torch
+faster-whisper
 openai
-python-dotenv
 gunicorn
+requests
+python-dotenv
