@@ -1,25 +1,58 @@
 #!/bin/bash
+echo "🚀 Starting AvaOS Realtime Server..."
 cd /workspace/AvaOS_Realtime
 
-echo "🚀 Starting AvaOS Realtime Auto Setup & Launch..."
+# Activate virtual environment if it exists
+if [ -d "venv" ]; then
+  source venv/bin/activate
+fi
 
-# Step 1: Run setup_env.sh to prepare environment
-bash setup_env.sh
+# Run the server with automatic port fallback
+echo "🔍 Checking available ports (8888–8891)..."
+python3 - <<'PYCODE'
+import asyncio
+from aiohttp import web
+import socket
 
-# Step 2: Activate the virtual environment
-echo "🔑 Activating virtual environment..."
-source venv/bin/activate
+def create_app():
+    async def handle(request):
+        return web.Response(text="✅ AvaOS Realtime Server is running!")
+    app = web.Application()
+    app.router.ad
+cat > startup.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Starting AvaOS Realtime Server..."
+cd /workspace/AvaOS_Realtime
 
-# Step 3: Keep server alive forever (auto-restart on crash) with logging
-echo "🌍 Launching AvaOS Realtime Server (auto-restart + logging enabled)..."
+# Activate virtual environment if it exists
+if [ -d "venv" ]; then
+  source venv/bin/activate
+fi
 
-# Log directory
-LOG_FILE="avaos_server.log"
+# Run the server with automatic port fallback
+echo "🔍 Checking available ports (8888–8891)..."
+python3 - <<'PYCODE'
+import asyncio
+from aiohttp import web
+import socket
 
-# Start loop
-while true; do
-    echo "🔄 Starting server at $(date)" | tee -a $LOG_FILE
-    python3 main.py >> $LOG_FILE 2>&1
-    echo "⚠️  Server crashed or stopped at $(date). Restarting in 5 seconds..." | tee -a $LOG_FILE
-    sleep 5
-done
+def create_app():
+    async def handle(request):
+        return web.Response(text="✅ AvaOS Realtime Server is running!")
+    app = web.Application()
+    app.router.add_get("/", handle)
+
+    return app
+
+for port in [8888, 8889, 8890, 8891]:
+    try:
+        app = create_app()
+        print(f"✅ Running AvaOS Realtime on http://0.0.0.0:{port}")
+        web.run_app(app, host="0.0.0.0", port=port)
+        break
+    except OSError as e:
+        if e.errno == 98:
+            print(f"⚠️  Port {port} is in use, trying next...")
+        else:
+            raise
+PYCODE
